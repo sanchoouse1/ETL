@@ -21,7 +21,8 @@ def get_URI(query: str, page_num: str, date: str, API_KEY: str) -> str:
 def extract():
     df = pd.DataFrame()
 
-    current_date = datetime.datetime.now().strftime('%Y%m%d')
+    # current_date = datetime.datetime.now().strftime('%Y%m%d')
+    current_date = '20210101'
     page_num = 1
 
     load_dotenv()
@@ -34,7 +35,10 @@ def extract():
         response = httpx.get(URI)
         data = response.json()
 
-        df_request = json_normalize(data['response'], record_path=['docs'])
+        try:
+            df_request = json_normalize(data['response'], record_path=['docs'])
+        except Exception as e:
+            break
 
         # Прервать, если новые записи отсутствуют
         if df_request.empty:
@@ -43,6 +47,8 @@ def extract():
         df = pd.concat([df, df_request])
 
         time.sleep(6)
+
+    df.info()
 
 
 if __name__ == '__main__':
