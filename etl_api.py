@@ -18,10 +18,34 @@ def get_URI(query: str, page_num: str, date: str, API_KEY: str) -> str:
 
     return uri
 
-df = pd.DataFrame()
+def extract():
+    df = pd.DataFrame()
 
-current_date = datetime.datetime.now().strftime('%Y%m%d')
-page_num = 1
+    current_date = datetime.datetime.now().strftime('%Y%m%d')
+    page_num = 1
 
-load_dotenv()
-API_KEY = os.getenv('API_KEY')
+    load_dotenv()
+    API_KEY = os.getenv('API_KEY')
+
+    while True:
+        # Получаю URI с записями, относящимся к COVID
+        URI = get_URI('COVID', page_num=str(page_num), date=current_date, API_KEY=API_KEY)
+
+        response = httpx.get(URI)
+        data = response.json()
+
+        df_request = json_normalize(data['response'], record_path=['docs'])
+
+        # Прервать, если новые записи отсутствуют
+        if df_request.empty:
+            break
+
+        df = pd.concat([df, df_request])
+
+        time.sleep(6)
+
+
+if __name__ == '__main__':
+    extract()
+    # transform()
+    # load()
